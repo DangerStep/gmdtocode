@@ -4,6 +4,7 @@ import gzip
 import zlib
 import sys
 from pathlib import Path
+import pyperclip
 
 
 def extract_k4(xml: str) -> str:
@@ -90,8 +91,10 @@ def main():
 
     if mode == "condensed":
         print(build_condensed(raw))
+        pyperclip.copy(build_condensed(raw))
     else:
         print(build_expanded(raw))
+        pyperclip.copy(build_expanded(raw))
 
 
 if __name__ == "__main__":
