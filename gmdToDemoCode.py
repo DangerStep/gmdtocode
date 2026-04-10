@@ -37,7 +37,7 @@ def js_escape(s: str) -> str:
 
 
 # ---------------- EXPANDED MODE ----------------
-def build_expanded(raw: str) -> str:
+def build_expanded(raw: str, filename: str) -> str:
     raw_js = js_escape(raw)
 
     return f"""Zi = (orig => function(data) {{
@@ -61,17 +61,37 @@ def build_expanded(raw: str) -> str:
 
     return orig(encoded);
 }})(Zi);
+const origAddBitmapText = Phaser.GameObjects.GameObjectFactory.prototype.bitmapText;
+
+Phaser.GameObjects.GameObjectFactory.prototype.bitmapText = function(x, y, font, text, size, align) {{
+  if (typeof text === "string") {{
+    if (text === "Stereo Madness") {{
+      text = "{filename}";
+    }}
+  }}
+  return origAddBitmapText.call(this, x, y, font, text, size, align);
+}};
 """
 
 
 # ---------------- CONDENSED MODE ----------------
-def build_condensed(raw: str) -> str:
+def build_condensed(raw: str, filename: str) -> str:
     encoded = encode_for_demo(raw)
 
     return f"""Zi = (orig => function(data) {{
     console.log("[INJECT] condensed mode");
     return orig("{encoded}");
 }})(Zi);
+const origAddBitmapText = Phaser.GameObjects.GameObjectFactory.prototype.bitmapText;
+
+Phaser.GameObjects.GameObjectFactory.prototype.bitmapText = function(x, y, font, text, size, align) {{
+  if (typeof text === "string") {{
+    if (text === "Stereo Madness") {{
+      text = "{filename}";
+    }}
+  }}
+  return origAddBitmapText.call(this, x, y, font, text, size, align);
+}};
 """
 
 
@@ -90,11 +110,11 @@ def main():
     raw = decode_k4(k4)
 
     if mode == "condensed":
-        print(build_condensed(raw))
-        pyperclip.copy(build_condensed(raw))
+        print(build_condensed(raw, path.stem))
+        pyperclip.copy(build_condensed(raw, path.stem))
     else:
-        print(build_expanded(raw))
-        pyperclip.copy(build_expanded(raw))
+        print(build_expanded(raw, path.stem))
+        pyperclip.copy(build_expanded(raw, path.stem))
 
 
 if __name__ == "__main__":
